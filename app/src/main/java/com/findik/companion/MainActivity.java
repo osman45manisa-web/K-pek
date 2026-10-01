@@ -157,8 +157,6 @@ public final class MainActivity extends Activity {
 
         b.setText(label);
 
-        b.setTextAllCaps(false);
-
         b.setTextSize(16);
 
         b.setTextColor(
