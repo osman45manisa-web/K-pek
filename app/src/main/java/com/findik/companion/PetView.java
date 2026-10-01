@@ -7,21 +7,10 @@ import android.view.View;
 public final class PetView extends View {
 
     private final Bitmap sheet;
-
     private final Paint paint =
         new Paint(
             Paint.ANTI_ALIAS_FLAG |
             Paint.FILTER_BITMAP_FLAG
-        );
-
-    private final Paint bubblePaint =
-        new Paint(
-            Paint.ANTI_ALIAS_FLAG
-        );
-
-    private final Paint bubbleText =
-        new Paint(
-            Paint.ANTI_ALIAS_FLAG
         );
 
     public int frame = 0;
@@ -29,159 +18,61 @@ public final class PetView extends View {
     public String mood = "walk";
     public float phase = 0f;
 
-    public PetView(
-        Context context
-    ) {
+    public PetView(Context context) {
         super(context);
 
-        BitmapFactory.Options options =
+        BitmapFactory.Options o =
             new BitmapFactory.Options();
 
-        options.inScaled =
-            false;
+        o.inScaled = false;
 
         sheet =
             BitmapFactory.decodeResource(
                 getResources(),
                 R.drawable.findik_walk,
-                options
+                o
             );
-
-        bubbleText.setColor(
-            Color.rgb(
-                70,
-                57,
-                45
-            )
-        );
-
-        bubbleText.setTextAlign(
-            Paint.Align.CENTER
-        );
-
-        bubbleText.setTypeface(
-            Typeface.create(
-                Typeface.DEFAULT,
-                Typeface.BOLD
-            )
-        );
-
-        setContentDescription(
-            "Fındık: dokunarak tepki verdir, sürükleyerek taşı"
-        );
     }
 
-    private int moodFrame() {
+    private int currentFrame() {
 
-        if (
-            "rest".equals(
-                mood
-            )
-        ) {
-            return 6;
-        }
-
-        if (
-            "look".equals(
-                mood
-            )
-        ) {
-            return 5;
-        }
-
-        if (
-            "sniff".equals(
-                mood
-            )
-        ) {
+        if ("sniff".equals(mood))
             return 4;
-        }
 
-        if (
-            "hop".equals(
-                mood
-            )
-        ) {
+        if ("look".equals(mood))
+            return 5;
+
+        if ("rest".equals(mood))
+            return 6;
+
+        if ("hop".equals(mood))
             return 7;
-        }
 
         return frame % 4;
     }
 
-    private String moodText() {
-
-        if (
-            "sniff".equals(
-                mood
-            )
-        ) {
-            return "Kokluyorum…";
-        }
-
-        if (
-            "hop".equals(
-                mood
-            )
-        ) {
-            return "Merhaba!";
-        }
-
-        if (
-            "look".equals(
-                mood
-            )
-        ) {
-            return "Ne var orada?";
-        }
-
-        if (
-            "rest".equals(
-                mood
-            )
-        ) {
-            return "Biraz dinleneyim…";
-        }
-
-        return "";
-    }
-
     @Override
-    protected void onDraw(
-        Canvas canvas
-    ) {
+    protected void onDraw(Canvas c) {
 
-        super.onDraw(
-            canvas
-        );
+        super.onDraw(c);
 
-        if (
-            sheet == null
-        ) {
+        if (sheet == null)
             return;
-        }
 
-        float w =
-            getWidth();
-
-        float h =
-            getHeight();
+        float w = getWidth();
+        float h = getHeight();
 
         int cellW =
-            sheet.getWidth() /
-            4;
+            sheet.getWidth() / 4;
 
         int cellH =
-            sheet.getHeight() /
-            2;
+            sheet.getHeight() / 2;
 
         int i =
-            moodFrame();
+            currentFrame();
 
-        int col =
-            i % 4;
-
-        int row =
-            i / 4;
+        int col = i % 4;
+        int row = i / 4;
 
         Rect src =
             new Rect(
@@ -194,14 +85,98 @@ public final class PetView extends View {
         float bottom =
             h - 8;
 
-        float drawHeight =
-            w *
-            cellH /
-            cellW;
+        float drawH =
+            w * cellH / cellW;
 
         RectF dst =
             new RectF(
                 0,
-                bottom -
-                drawHeight,
+                bottom - drawH,
                 w,
+                bottom
+            );
+
+        c.save();
+
+        if (facingRight) {
+
+            c.translate(
+                w,
+                0
+            );
+
+            c.scale(
+                -1f,
+                1f
+            );
+        }
+
+        if ("hop".equals(mood)) {
+
+            float jump =
+                Math.abs(
+                    (float)
+                    Math.sin(
+                        phase *
+                        Math.PI
+                    )
+                ) *
+                h *
+                0.15f;
+
+            c.translate(
+                0,
+                -jump
+            );
+        }
+
+        if ("sniff".equals(mood)) {
+
+            c.rotate(
+                (float)
+                Math.sin(
+                    phase *
+                    Math.PI *
+                    4
+                ) *
+                3f,
+                w / 2f,
+                bottom
+            );
+        }
+
+        if ("look".equals(mood)) {
+
+            c.rotate(
+                (float)
+                Math.sin(
+                    phase *
+                    Math.PI *
+                    3
+                ) *
+                4f,
+                w / 2f,
+                bottom
+            );
+        }
+
+        if ("rest".equals(mood)) {
+
+            c.scale(
+                1.02f,
+                0.94f,
+                w / 2f,
+                bottom
+            );
+        }
+
+        c.drawBitmap(
+            sheet,
+            src,
+            dst,
+            paint
+        );
+
+        c.restore();
+    }
+}
